@@ -1,0 +1,23 @@
+{
+  "backend": {
+    "root": "project/backend",
+    "buildCommand": "npm install",
+    "startCommand": "npm start",
+    "env": {
+      "MONGODB_URI": "${{ secrets.MONGODB_URI }}",
+      "JWT_SECRET": "${{ secrets.JWT_SECRET }}",
+      "FRONTEND_URL": "${{ secrets.FRONTEND_URL }}",
+      "NODE_ENV": "production",
+      "PORT": "5000"
+    }
+  },
+  "frontend": {
+    "root": "project",
+    "buildCommand": "npm install && npm run build",
+    "startCommand": "npm run preview",
+    "env": {
+      "VITE_API_URL": "${{ services.backend.url }}/api",
+      "NODE_ENV": "production"
+    }
+  }
+}
