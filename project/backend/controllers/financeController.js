@@ -1,30 +1,41 @@
-import { transactions, setTransactions } from '../data/finance.js';
+import Transaction from '../models/Transaction.js';
 
-export const getAllTransactions = (req, res) => {
-  res.json(transactions);
-};
-
-export const getTransactionById = (req, res) => {
-  const transaction = transactions.find(t => t.id === parseInt(req.params.id));
-
-  if (!transaction) {
-    return res.status(404).json({ message: 'Transaction not found' });
+export const getAllTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find();
+    res.json(transactions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  res.json(transaction);
 };
 
-export const createTransaction = (req, res) => {
-  const { type, amount, description, date } = req.body;
+export const getTransactionById = async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
 
-  const newTransaction = {
-    id: transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1,
-    type,
-    amount,
-    description,
-    date
-  };
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
 
-  transactions.push(newTransaction);
-  res.status(201).json(newTransaction);
+    res.json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const createTransaction = async (req, res) => {
+  try {
+    const { type, amount, description, date } = req.body;
+
+    if (!type || !amount || !description) {
+      return res.status(400).json({ message: 'type, amount, and description are required' });
+    }
+
+    const newTransaction = new Transaction({ type, amount, description, date: date || new Date() });
+    await newTransaction.save();
+
+    res.status(201).json(newTransaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api';
+// Forcing exact production URL to absolutely prevent browser from using localhost
+const API_URL = 'https://erp-project-rosy.vercel.app/api';
 
 export const getAuthToken = () => {
   return localStorage.getItem('token');

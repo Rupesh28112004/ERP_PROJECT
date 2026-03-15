@@ -1,56 +1,75 @@
-import { projects, setProjects } from '../data/projects.js';
+import Project from '../models/Project.js';
 
-export const getAllProjects = (req, res) => {
-  res.json(projects);
-};
-
-export const getProjectById = (req, res) => {
-  const project = projects.find(p => p.id === parseInt(req.params.id));
-
-  if (!project) {
-    return res.status(404).json({ message: 'Project not found' });
+export const getAllProjects = async (req, res) => {
+  try {
+    const projects = await Project.find();
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  res.json(project);
 };
 
-export const createProject = (req, res) => {
-  const { title, client, status, budget } = req.body;
+export const getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
 
-  const newProject = {
-    id: projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1,
-    title,
-    client,
-    status,
-    budget
-  };
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
 
-  projects.push(newProject);
-  res.status(201).json(newProject);
-};
-
-export const updateProject = (req, res) => {
-  const id = parseInt(req.params.id);
-  const { title, client, status, budget } = req.body;
-
-  const index = projects.findIndex(p => p.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ message: 'Project not found' });
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  projects[index] = { id, title, client, status, budget };
-  res.json(projects[index]);
 };
 
-export const deleteProject = (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = projects.findIndex(p => p.id === id);
+export const createProject = async (req, res) => {
+  try {
+    const { title, client, status, budget } = req.body;
 
-  if (index === -1) {
-    return res.status(404).json({ message: 'Project not found' });
+    if (!title || !client || !budget) {
+      return res.status(400).json({ message: 'title, client, and budget are required' });
+    }
+
+    const newProject = new Project({ title, client, status: status || 'Planning', budget });
+    await newProject.save();
+
+    res.status(201).json(newProject);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
+};
 
-  projects.splice(index, 1);
-  res.json({ message: 'Project deleted successfully' });
+export const updateProject = async (req, res) => {
+  try {
+    const { title, client, status, budget } = req.body;
+
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      { title, client, status, budget },
+      { new: true, runValidators: true }
+    );
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findByIdAndDelete(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

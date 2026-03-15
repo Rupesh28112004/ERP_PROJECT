@@ -1,56 +1,75 @@
-import { inventory, setInventory } from '../data/inventory.js';
+import Inventory from '../models/Inventory.js';
 
-export const getAllInventory = (req, res) => {
-  res.json(inventory);
-};
-
-export const getInventoryById = (req, res) => {
-  const item = inventory.find(i => i.id === parseInt(req.params.id));
-
-  if (!item) {
-    return res.status(404).json({ message: 'Item not found' });
+export const getAllInventory = async (req, res) => {
+  try {
+    const inventory = await Inventory.find();
+    res.json(inventory);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  res.json(item);
 };
 
-export const createInventoryItem = (req, res) => {
-  const { itemName, quantity, category, unitPrice } = req.body;
+export const getInventoryById = async (req, res) => {
+  try {
+    const item = await Inventory.findById(req.params.id);
 
-  const newItem = {
-    id: inventory.length > 0 ? Math.max(...inventory.map(i => i.id)) + 1 : 1,
-    itemName,
-    quantity,
-    category,
-    unitPrice
-  };
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
 
-  inventory.push(newItem);
-  res.status(201).json(newItem);
-};
-
-export const updateInventoryItem = (req, res) => {
-  const id = parseInt(req.params.id);
-  const { itemName, quantity, category, unitPrice } = req.body;
-
-  const index = inventory.findIndex(i => i.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ message: 'Item not found' });
+    res.json(item);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  inventory[index] = { id, itemName, quantity, category, unitPrice };
-  res.json(inventory[index]);
 };
 
-export const deleteInventoryItem = (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = inventory.findIndex(i => i.id === id);
+export const createInventoryItem = async (req, res) => {
+  try {
+    const { itemName, quantity, category, unitPrice } = req.body;
 
-  if (index === -1) {
-    return res.status(404).json({ message: 'Item not found' });
+    if (!itemName || !category || !unitPrice) {
+      return res.status(400).json({ message: 'itemName, category, and unitPrice are required' });
+    }
+
+    const newItem = new Inventory({ itemName, quantity: quantity || 0, category, unitPrice });
+    await newItem.save();
+
+    res.status(201).json(newItem);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
+};
 
-  inventory.splice(index, 1);
-  res.json({ message: 'Item deleted successfully' });
+export const updateInventoryItem = async (req, res) => {
+  try {
+    const { itemName, quantity, category, unitPrice } = req.body;
+
+    const item = await Inventory.findByIdAndUpdate(
+      req.params.id,
+      { itemName, quantity, category, unitPrice },
+      { new: true, runValidators: true }
+    );
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.json(item);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteInventoryItem = async (req, res) => {
+  try {
+    const item = await Inventory.findByIdAndDelete(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.json({ message: 'Item deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

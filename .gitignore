@@ -33,3 +33,6 @@ lerna-debug.log*
 
 # Temp files
 tmpclaude-*
+
+.vercel
+.env*.local
