@@ -1,0 +1,8 @@
+# Railway.toml - Configuration for Railway deployment
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "cd project/backend && npm start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5

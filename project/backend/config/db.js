@@ -7,17 +7,20 @@ export const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI;
 
+    // Skip connection during build
     if (!mongoURI) {
-      throw new Error('MONGODB_URI is not defined in environment variables');
+      console.warn('⚠️ MONGODB_URI not set - MongoDB connection skipped');
+      return null;
     }
 
     await mongoose.connect(mongoURI);
 
-    console.log('MongoDB connected successfully');
+    console.log('✅ MongoDB connected successfully');
     return mongoose.connection;
   } catch (error) {
-    console.error('MongoDB connection error:', error.message);
-    process.exit(1);
+    console.error('❌ MongoDB connection error:', error.message);
+    // Don't exit process - allows server to start anyway
+    return null;
   }
 };
 
